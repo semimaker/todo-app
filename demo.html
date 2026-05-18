@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tika — Kanban Board Demo</title>
+<style>
+/* ============================================================
+   Design Tokens
+   ============================================================ */
+:root {
+  --color-board-bg:          #f1f2f4;
+  --color-header-bg:         #ffffff;
+  --color-card-bg:           #ffffff;
+
+  --color-col-backlog:       #f5f3ff;
+  --color-col-todo:          #fefce8;
+  --color-col-in-progress:   #eff6ff;
+  --color-col-done:          #f0fdf4;
+
+  --color-accent-backlog:    #7c3aed;
+  --color-accent-todo:       #ca8a04;
+  --color-accent-in-progress:#2563eb;
+  --color-accent-done:       #16a34a;
+
+  --color-priority-high:     #dc2626;
+  --color-priority-medium:   #2563eb;
+  --color-priority-low:      #6b7280;
+
+  --color-overdue:           #dc2626;
+  --color-overdue-bg:        #fee2e2;
+
+  --color-text-primary:      #111827;
+  --color-text-secondary:    #4b5563;
+  --color-text-muted:        #9ca3af;
+
+  --color-border:            #e2e8f0;
+  --color-border-hover:      #cbd5e1;
+  --color-divider:           #d1d5db;
+
+  --shadow-card:             0 1px 2px rgba(0,0,0,.08);
+  --shadow-card-hover:       0 4px 8px rgba(0,0,0,.12);
+  --shadow-column:           0 1px 3px rgba(9,30,66,.10), 0 0 0 1px rgba(9,30,66,.06);
+
+  --radius-card:    8px;
+  --radius-badge:   4px;
+  --radius-button:  6px;
+  --radius-input:   6px;
+  --radius-column:  12px;
+
+  --sidebar-width:  272px;
+
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================================
+   Reset
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--color-text-primary);
+  background: var(--color-board-bg);
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+.board-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+.board-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-right: auto;
+}
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-size: 12px;
+  width: 200px;
+  color: var(--color-text-primary);
+  background: #fff;
+  font-family: var(--font);
+  transition: border-color .15s;
+}
+.search-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+.search-input::placeholder { color: var(--color-text-muted); }
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  background: var(--color-accent-in-progress);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-button);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background .15s;
+}
+.btn-primary:hover { background: #1d4ed8; }
+
+/* ============================================================
+   Board Content
+   ============================================================ */
+.board-content {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  overflow: hidden;
+}
+
+/* Backlog Sidebar */
+.board-sidebar {
+  background: var(--color-board-bg);
+  border-right: 1px solid var(--color-divider);
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.board-sidebar .column { flex: 1; }
+
+/* Main area */
+.board-main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+/* FilterBar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all .15s;
+}
+.filter-btn:hover { border-color: var(--color-border-hover); background: #f8fafc; }
+.filter-btn.active {
+  border-color: var(--color-accent-in-progress);
+  background: #eff6ff;
+  color: var(--color-accent-in-progress);
+  font-weight: 600;
+}
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--color-border);
+  font-size: 11px;
+  font-weight: 600;
+}
+.filter-btn.active .filter-count { background: var(--color-accent-in-progress); color: #fff; }
+
+/* ============================================================
+   Columns
+   ============================================================ */
+.columns-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 12px;
+  padding: 12px 16px 16px;
+  overflow: hidden;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-column);
+  overflow: hidden;
+  box-shadow: var(--shadow-column);
+}
+.column[data-status='BACKLOG']     { background: var(--color-col-backlog);     border-top: 3px solid var(--color-accent-backlog); }
+.column[data-status='TODO']        { background: var(--color-col-todo);        border-top: 3px solid var(--color-accent-todo); }
+.column[data-status='IN_PROGRESS'] { background: var(--color-col-in-progress); border-top: 3px solid var(--color-accent-in-progress); }
+.column[data-status='DONE']        { background: var(--color-col-done);        border-top: 3px solid var(--color-accent-done); }
+
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 8px;
+}
+.column-header-left { display: flex; align-items: center; gap: 8px; }
+.column-status-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.column-title       { font-size: 14px; font-weight: 700; color: var(--color-text-primary); }
+.column-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.08);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.column-cards {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+  overflow-y: auto;
+  min-height: 60px;
+}
+.column-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Scrollbar */
+.column-cards::-webkit-scrollbar,
+.board-sidebar::-webkit-scrollbar { width: 5px; }
+.column-cards::-webkit-scrollbar-track,
+.board-sidebar::-webkit-scrollbar-track { background: transparent; }
+.column-cards::-webkit-scrollbar-thumb,
+.board-sidebar::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+/* ============================================================
+   Ticket Card
+   ============================================================ */
+.ticket-card {
+  background: var(--color-card-bg);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: box-shadow .15s, border-color .15s;
+  user-select: none;
+}
+.ticket-card:hover { box-shadow: var(--shadow-card-hover); border-color: var(--color-border-hover); }
+.ticket-card[data-overdue] { border-left: 3px solid var(--color-overdue); background: var(--color-overdue-bg); }
+.ticket-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticket-card-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticket-card-meta { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ============================================================
+   Badges
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-badge);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.badge-high   { background: #fee2e2; color: var(--color-priority-high); }
+.badge-medium { background: #dbeafe; color: var(--color-priority-medium); }
+.badge-low    { background: #f1f5f9; color: var(--color-priority-low); }
+.badge-due    { font-size: 11px; font-weight: 400; color: var(--color-text-muted); }
+.badge-due[data-overdue] { color: var(--color-overdue); font-weight: 600; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1023px) {
+  .board-content    { grid-template-columns: 1fr; }
+  .board-sidebar    { display: none; }
+  .board-main       { overflow-y: auto; grid-template-rows: auto auto; }
+  .columns-container{ grid-template-columns: repeat(2,1fr); height: auto; overflow: visible; }
+}
+@media (max-width: 767px) {
+  .board-header     { padding: 8px 12px; gap: 8px; }
+  .search-input     { width: 140px; }
+  .columns-container{ grid-template-columns: 1fr; padding: 8px; }
+  .column           { height: auto; }
+  .column-cards     { overflow-y: visible; flex: none; height: auto; }
+  .filter-bar       { overflow-x: auto; white-space: nowrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ───────────────────────────────────────────────── -->
+<header class="board-header">
+  <h1 class="board-title">Tika</h1>
+  <input class="search-input" type="text" placeholder="검색 (준비 중)" disabled />
+  <button class="btn-primary">+ 새 업무</button>
+</header>
+
+<!-- ── Board ────────────────────────────────────────────────── -->
+<div class="board-content">
+
+  <!-- Backlog Sidebar -->
+  <aside class="board-sidebar">
+    <div class="column" data-status="BACKLOG">
+      <div class="column-header">
+        <div class="column-header-left">
+          <span class="column-status-dot" style="background:#7c3aed"></span>
+          <span class="column-title">백로그</span>
+        </div>
+        <span class="column-count">3</span>
+      </div>
+      <div class="column-cards">
+        <div class="ticket-card">
+          <div class="ticket-card-title">디자인 시스템 구축</div>
+          <div class="ticket-card-desc">컬러 토큰, 타이포그래피, 컴포넌트 정의</div>
+          <div class="ticket-card-meta">
+            <span class="badge badge-high">높음</span>
+          </div>
+        </div>
+        <div class="ticket-card">
+          <div class="ticket-card-title">API 문서 자동화</div>
+          <div class="ticket-card-desc">Swagger/OpenAPI 연동</div>
+          <div class="ticket-card-meta">
+            <span class="badge badge-low">낮음</span>
+            <span class="badge-due">~06/30</span>
+          </div>
+        </div>
+        <div class="ticket-card">
+          <div class="ticket-card-title">성능 모니터링 설정</div>
+          <div class="ticket-card-meta">
+            <span class="badge badge-medium">보통</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Board -->
+  <main class="board-main">
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <button class="filter-btn active">
+        이번주 업무 <span class="filter-count">2</span>
+      </button>
+      <button class="filter-btn">
+        일정 초과 <span class="filter-count">1</span>
+      </button>
+    </div>
+
+    <!-- 3 Columns -->
+    <div class="columns-container">
+
+      <!-- TODO -->
+      <div class="column" data-status="TODO">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-status-dot" style="background:#ca8a04"></span>
+            <span class="column-title">할 일</span>
+          </div>
+          <span class="column-count">3</span>
+        </div>
+        <div class="column-cards">
+          <div class="ticket-card">
+            <div class="ticket-card-title">알림 기능 조사</div>
+            <div class="ticket-card-desc">푸시 알림 라이브러리 선정 및 PoC</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-low">낮음</span>
+              <span class="badge-due">~05/26</span>
+            </div>
+          </div>
+          <div class="ticket-card">
+            <div class="ticket-card-title">로그인 페이지 구현</div>
+            <div class="ticket-card-desc">OAuth2 소셜 로그인 연동</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-medium">보통</span>
+              <span class="badge-due">~05/23</span>
+            </div>
+          </div>
+          <div class="ticket-card" data-overdue="">
+            <div class="ticket-card-title">DB 인덱스 최적화</div>
+            <div class="ticket-card-desc">쿼리 성능 개선</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-high">높음</span>
+              <span class="badge-due" data-overdue="">~05/15 지연</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IN_PROGRESS -->
+      <div class="column" data-status="IN_PROGRESS">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-status-dot" style="background:#2563eb"></span>
+            <span class="column-title">진행 중</span>
+          </div>
+          <span class="column-count">2</span>
+        </div>
+        <div class="column-cards">
+          <div class="ticket-card">
+            <div class="ticket-card-title">API 설계 문서 작성</div>
+            <div class="ticket-card-desc">RESTful 엔드포인트 명세 정리</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-high">높음</span>
+              <span class="badge-due">~05/21</span>
+            </div>
+          </div>
+          <div class="ticket-card">
+            <div class="ticket-card-title">칸반 보드 UI 개발</div>
+            <div class="ticket-card-desc">드래그 앤 드롭 구현</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-medium">보통</span>
+              <span class="badge-due">~05/24</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DONE -->
+      <div class="column" data-status="DONE">
+        <div class="column-header">
+          <div class="column-header-left">
+            <span class="column-status-dot" style="background:#16a34a"></span>
+            <span class="column-title">완료</span>
+          </div>
+          <span class="column-count">2</span>
+        </div>
+        <div class="column-cards">
+          <div class="ticket-card">
+            <div class="ticket-card-title">프로젝트 초기 설정</div>
+            <div class="ticket-card-desc">Next.js + Drizzle ORM 구성</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-medium">보통</span>
+              <span class="badge-due">~05/10</span>
+            </div>
+          </div>
+          <div class="ticket-card">
+            <div class="ticket-card-title">ERD 설계</div>
+            <div class="ticket-card-desc">티켓 데이터 모델 확정</div>
+            <div class="ticket-card-meta">
+              <span class="badge badge-high">높음</span>
+              <span class="badge-due">~05/12</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /columns-container -->
+  </main>
+</div><!-- /board-content -->
+
+<script>
+  // Filter toggle
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const wasActive = btn.classList.contains('active');
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      if (!wasActive) btn.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

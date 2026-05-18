@@ -37,20 +37,31 @@ function calculateDropPosition(
   activeId: number,
   overId: number | string
 ): number {
+  // 대상 컬럼에서 드래그 중인 티켓 제외
   const filtered = tickets.filter((t) => t.id !== activeId);
 
+  // 빈 칼럼 → position = 0
   if (filtered.length === 0) return 0;
+
+  // overId 가 string = 컬럼 컨테이너에 드롭 (카드 아래 빈 공간)
+  // → 맨 뒤 삽입
+  if (typeof overId === 'string') {
+    return filtered[filtered.length - 1].position + 1024;
+  }
 
   const overIndex = filtered.findIndex((t) => t.id === Number(overId));
 
+  // 대상 카드를 찾지 못한 경우 → 맨 뒤 삽입
   if (overIndex === -1) {
-    return filtered[0].position - 1024;
+    return filtered[filtered.length - 1].position + 1024;
   }
 
+  // 첫 번째 카드 위에 드롭 → 맨 앞 삽입
   if (overIndex === 0) {
     return filtered[0].position - 1024;
   }
 
+  // 두 카드 사이에 드롭 → 중간값
   const above = filtered[overIndex - 1].position;
   const below = filtered[overIndex].position;
   return Math.floor((above + below) / 2);

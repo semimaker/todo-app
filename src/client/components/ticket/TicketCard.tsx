@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { PriorityBadge, DueDateBadge } from '@/client/components/ui/Badge';
@@ -20,6 +21,9 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
     isDragging,
   } = useSortable({ id: ticket.id });
 
+  // 드래그 발생 여부 추적 — 드래그 후 포인터 업에서 click 이벤트 억제
+  const dragMoved = useRef(false);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: transition ?? undefined,
@@ -32,14 +36,23 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
     .filter(Boolean)
     .join(' ');
 
+  const handlePointerDown = () => {
+    dragMoved.current = false;
+  };
+
+  const handlePointerMove = () => {
+    dragMoved.current = true;
+  };
+
   const handleClick = () => {
-    if (onClick) onClick();
+    if (dragMoved.current) return;
+    onClick?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      if (onClick) onClick();
+      onClick?.();
     }
   };
 
@@ -52,10 +65,10 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
       data-dragging={isDragging ? 'true' : undefined}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       {...attributes}
       {...listeners}
-      role="button"
-      tabIndex={0}
       aria-label={`티켓: ${ticket.title}`}
     >
       <div className="ticket-card-title">{ticket.title}</div>
@@ -64,9 +77,7 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
       )}
       <div className="ticket-card-meta">
         <PriorityBadge priority={ticket.priority} />
-        {ticket.dueDate && (
-          <DueDateBadge dueDate={ticket.dueDate} isOverdue={ticket.isOverdue} />
-        )}
+        <DueDateBadge dueDate={ticket.dueDate} isOverdue={ticket.isOverdue} />
       </div>
     </div>
   );

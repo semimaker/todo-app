@@ -1,36 +1,41 @@
 {
   "semantic": {
-    "primary": { "value": "#2563EB", "tailwind": "blue-600" },
-    "danger": { "value": "#DC2626", "tailwind": "red-600" },
-    "success": { "value": "#16A34A", "tailwind": "green-600" },
-    "warning": { "value": "#D97706", "tailwind": "amber-600" }
+    "primary": { "value": "#2563EB", "tailwind": "blue-600",   "cssVar": "--color-accent-in-progress" },
+    "danger":  { "value": "#DC2626", "tailwind": "red-600",    "cssVar": "--color-overdue" },
+    "success": { "value": "#16A34A", "tailwind": "green-600",  "cssVar": "--color-accent-done" },
+    "warning": { "value": "#CA8A04", "tailwind": "yellow-600", "cssVar": "--color-accent-todo" }
   },
+
   "background": {
-    "default": { "value": "#F5F6F8", "note": "전체 보드 배경" },
-    "header": { "value": "#FFFFFF", "note": "헤더 배경" },
-    "card": { "value": "#FFFFFF", "note": "카드 배경" },
-    "overlay": { "value": "rgba(0,0,0,0.5)", "note": "모달 오버레이" }
+    "board":       { "value": "#F1F2F4", "cssVar": "--color-board-bg",    "note": "board canvas — darker than columns for contrast" },
+    "header":      { "value": "#FFFFFF", "cssVar": "--color-header-bg" },
+    "card":        { "value": "#FFFFFF", "cssVar": "--color-card-bg" },
+    "cardOverdue": { "value": "#FEE2E2", "cssVar": "--color-overdue-bg",  "tailwind": "red-100" }
   },
+
   "column": {
-    "backlog": { "value": "#F0EDFA", "accent": "#8B7EC8", "note": "라벤더 파스텔" },
-    "todo": { "value": "#FFF8E1", "accent": "#F59E0B", "note": "옐로 파스텔" },
-    "in_progress": { "value": "#E8F4FD", "accent": "#3B82F6", "note": "블루 파스텔" },
-    "done": { "value": "#E8F5E9", "accent": "#22C55E", "note": "그린 파스텔" }
+    "backlog":    { "bg": "#F5F3FF", "accent": "#7C3AED", "bgTailwind": "violet-50",  "accentTailwind": "violet-600", "bgVar": "--color-col-backlog",     "accentVar": "--color-accent-backlog" },
+    "todo":       { "bg": "#FEFCE8", "accent": "#CA8A04", "bgTailwind": "yellow-50",  "accentTailwind": "yellow-600", "bgVar": "--color-col-todo",        "accentVar": "--color-accent-todo" },
+    "inProgress": { "bg": "#EFF6FF", "accent": "#2563EB", "bgTailwind": "blue-50",    "accentTailwind": "blue-600",   "bgVar": "--color-col-in-progress", "accentVar": "--color-accent-in-progress" },
+    "done":       { "bg": "#F0FDF4", "accent": "#16A34A", "bgTailwind": "green-50",   "accentTailwind": "green-600",  "bgVar": "--color-col-done",        "accentVar": "--color-accent-done" }
   },
-  "border": {
-    "default": { "value": "#E2E8F0" },
-    "column_divider": { "value": "#D1D5DB", "note": "칼럼 간 구분선" },
-    "focus": { "value": "#3B82F6" }
-  },
+
   "text": {
-    "heading": { "value": "#111827", "note": "14px bold" },
-    "body": { "value": "#4B5563", "note": "12px regular" },
-    "muted": { "value": "#9CA3AF" },
-    "on_primary": { "value": "#FFFFFF" }
+    "primary":   { "value": "#111827", "tailwind": "gray-900", "cssVar": "--color-text-primary" },
+    "secondary": { "value": "#4B5563", "tailwind": "gray-600", "cssVar": "--color-text-secondary" },
+    "muted":     { "value": "#9CA3AF", "tailwind": "gray-400", "cssVar": "--color-text-muted" }
   },
+
+  "border": {
+    "default":   { "value": "#E2E8F0", "tailwind": "slate-200", "cssVar": "--color-border" },
+    "hover":     { "value": "#CBD5E1", "tailwind": "slate-300",  "cssVar": "--color-border-hover" },
+    "divider":   { "value": "#D1D5DB", "tailwind": "gray-300",   "cssVar": "--color-divider" },
+    "focusRing": { "value": "#2563EB", "tailwind": "blue-600",   "cssVar": "--color-focus-ring" }
+  },
+
   "priority": {
-    "high": { "bg": "#FEE2E2", "text": "#991B1B" },
-    "medium": { "bg": "#DBEAFE", "text": "#1E40AF" },
-    "low": { "bg": "#F3F4F6", "text": "#374151" }
+    "high":   { "text": "#DC2626", "bg": "#FEE2E2", "textTailwind": "red-600",  "bgTailwind": "red-100",    "textVar": "--color-priority-high" },
+    "medium": { "text": "#2563EB", "bg": "#DBEAFE", "textTailwind": "blue-600", "bgTailwind": "blue-100",   "textVar": "--color-priority-medium" },
+    "low":    { "text": "#6B7280", "bg": "#F1F5F9", "textTailwind": "gray-500", "bgTailwind": "slate-100",  "textVar": "--color-priority-low" }
   }
 }
