@@ -120,9 +120,9 @@ describe('BoardContainer', () => {
     render(<BoardContainer initialData={mockBoard} />);
 
     expect(screen.getByText('백로그')).toBeInTheDocument();
-    expect(screen.getByText('할 일')).toBeInTheDocument();
-    expect(screen.getByText('진행 중')).toBeInTheDocument();
-    expect(screen.getByText('완료')).toBeInTheDocument();
+    expect(screen.getAllByText('할 일').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('진행 중').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('완료').length).toBeGreaterThan(0);
   });
 
   // 5-3-4: "새 업무" 클릭 → 생성 모달 열기

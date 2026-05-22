@@ -1,68 +1,87 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+/**
+ * TC-COMP-008: FilterBar 컴포넌트 테스트
+ * 관련 US: US-005 (이번주 업무 필터), US-006 (일정 초과 필터)
+ *
+ * Props: activeFilter('all'|'thisWeek'|'overdue'), onFilterChange, counts({thisWeek, overdue})
+ * CSS:   .filter-bar  .filter-btn[data-active]  .filter-count
+ * 동작:  활성 필터 재클릭 → 'all' 토글
+ */
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { FilterBar } from '@/client/components/board/FilterBar';
 
-describe('FilterBar', () => {
-  const defaultProps = {
-    activeFilter: 'all' as const,
-    onFilterChange: jest.fn(),
-    counts: { thisWeek: 3, overdue: 2 },
-  };
+// ── 공통 props ────────────────────────────────────────────────────────────────
+const mockOnFilterChange = jest.fn();
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+const defaultProps = {
+  activeFilter: 'all' as const,
+  onFilterChange: mockOnFilterChange,
+  counts: { thisWeek: 3, overdue: 2 },
+};
 
-  // 5-2-1: "이번주 업무" 버튼 + 카운트 표시
-  it('"이번주 업무" 버튼과 카운트(3)가 표시된다', () => {
-    render(<FilterBar {...defaultProps} />);
+beforeEach(() => jest.clearAllMocks());
+
+// ── 테스트 ─────────────────────────────────────────────────────────────────────
+describe('TC-COMP-008: FilterBar', () => {
+
+  // C008-1 ───────────────────────────────────────────────────────────────────
+  it('C008-1: "이번주 업무" 버튼과 thisWeek 카운트가 .filter-count 클래스로 렌더링된다', () => {
+    const { container } = render(<FilterBar {...defaultProps} />);
 
     expect(screen.getByText('이번주 업무')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
+
+    const counts = container.querySelectorAll('.filter-count');
+    expect(counts[0]).toHaveTextContent('3');
   });
 
-  // 5-2-2: "일정 초과" 버튼 + 카운트 표시
-  it('"일정 초과" 버튼과 카운트(2)가 표시된다', () => {
-    render(<FilterBar {...defaultProps} />);
+  // C008-2 ───────────────────────────────────────────────────────────────────
+  it('C008-2: "일정 초과" 버튼과 overdue 카운트가 .filter-count 클래스로 렌더링된다', () => {
+    const { container } = render(<FilterBar {...defaultProps} />);
 
     expect(screen.getByText('일정 초과')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+
+    const counts = container.querySelectorAll('.filter-count');
+    expect(counts[1]).toHaveTextContent('2');
   });
 
-  // 5-2-3: "이번주 업무" 클릭 → onFilterChange('thisWeek')
-  it('"이번주 업무" 클릭 시 onFilterChange("thisWeek")이 호출된다', () => {
+  // C008-3 ───────────────────────────────────────────────────────────────────
+  it('C008-3: "이번주 업무" 클릭 시 onFilterChange("thisWeek")이 호출된다', async () => {
+    const user = userEvent.setup();
     render(<FilterBar {...defaultProps} />);
 
-    fireEvent.click(screen.getByText('이번주 업무'));
+    await user.click(screen.getByRole('button', { name: /이번주 업무/ }));
 
-    expect(defaultProps.onFilterChange).toHaveBeenCalledWith('thisWeek');
+    expect(mockOnFilterChange).toHaveBeenCalledWith('thisWeek');
   });
 
-  // 5-2-4: "일정 초과" 클릭 → onFilterChange('overdue')
-  it('"일정 초과" 클릭 시 onFilterChange("overdue")이 호출된다', () => {
+  // C008-4 ───────────────────────────────────────────────────────────────────
+  it('C008-4: "일정 초과" 클릭 시 onFilterChange("overdue")이 호출된다', async () => {
+    const user = userEvent.setup();
     render(<FilterBar {...defaultProps} />);
 
-    fireEvent.click(screen.getByText('일정 초과'));
+    await user.click(screen.getByRole('button', { name: /일정 초과/ }));
 
-    expect(defaultProps.onFilterChange).toHaveBeenCalledWith('overdue');
+    expect(mockOnFilterChange).toHaveBeenCalledWith('overdue');
   });
 
-  // 5-2-5: 이미 활성 필터 클릭 → 'all' 토글
-  it('이미 활성화된 필터를 클릭하면 onFilterChange("all")이 호출된다', () => {
-    render(<FilterBar {...defaultProps} activeFilter="thisWeek" />);
-
-    fireEvent.click(screen.getByText('이번주 업무'));
-
-    expect(defaultProps.onFilterChange).toHaveBeenCalledWith('all');
-  });
-
-  // 5-2-6: 활성 필터 버튼에 data-active="true"
-  it('활성 필터 버튼에 data-active="true" 속성이 적용된다', () => {
+  // C008-5 ───────────────────────────────────────────────────────────────────
+  it('C008-5: activeFilter="overdue" 이면 "일정 초과" 버튼에만 data-active="true" 가 적용된다', () => {
     render(<FilterBar {...defaultProps} activeFilter="overdue" />);
 
-    const overdueBtn = screen.getByText('일정 초과').closest('button');
-    const thisWeekBtn = screen.getByText('이번주 업무').closest('button');
+    const overdueBtn  = screen.getByRole('button', { name: /일정 초과/ });
+    const thisWeekBtn = screen.getByRole('button', { name: /이번주 업무/ });
 
     expect(overdueBtn).toHaveAttribute('data-active', 'true');
     expect(thisWeekBtn).not.toHaveAttribute('data-active');
+  });
+
+  // C008-6 ───────────────────────────────────────────────────────────────────
+  it('C008-6: 이미 활성화된 필터를 재클릭하면 onFilterChange("all")이 호출된다 (토글)', async () => {
+    const user = userEvent.setup();
+    render(<FilterBar {...defaultProps} activeFilter="thisWeek" />);
+
+    await user.click(screen.getByRole('button', { name: /이번주 업무/ }));
+
+    expect(mockOnFilterChange).toHaveBeenCalledWith('all');
   });
 });

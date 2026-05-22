@@ -50,9 +50,9 @@ describe('Board', () => {
     render(<Board board={emptyBoard} onTicketClick={jest.fn()} />);
 
     expect(screen.getByText('백로그')).toBeInTheDocument();
-    expect(screen.getByText('할 일')).toBeInTheDocument();
-    expect(screen.getByText('진행 중')).toBeInTheDocument();
-    expect(screen.getByText('완료')).toBeInTheDocument();
+    expect(screen.getAllByText('할 일').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('진행 중').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('완료').length).toBeGreaterThan(0);
   });
 
   // C003-2: Backlog 사이드바

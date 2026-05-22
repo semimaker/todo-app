@@ -1,44 +1,53 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+/**
+ * TC-COMP-007: BoardHeader 컴포넌트 테스트
+ * 관련 US: US-001 (새 업무 생성 진입점)
+ *
+ * Props: onCreateClick(() => void)
+ * CSS:   .board-header  .board-title  .search-input
+ */
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BoardHeader } from '@/client/components/board/BoardHeader';
 
-describe('BoardHeader', () => {
-  const defaultProps = {
-    onCreateClick: jest.fn(),
-  };
+// ── 공통 mock ─────────────────────────────────────────────────────────────────
+const mockOnCreateClick = jest.fn();
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+beforeEach(() => jest.clearAllMocks());
 
-  // 5-1-1: "Tika" 타이틀 렌더링
-  it('"Tika" 타이틀이 표시된다', () => {
-    render(<BoardHeader {...defaultProps} />);
+// ── 테스트 ─────────────────────────────────────────────────────────────────────
+describe('TC-COMP-007: BoardHeader', () => {
+
+  // C007-1 ───────────────────────────────────────────────────────────────────
+  it('C007-1: "Tika" 타이틀이 .board-title 클래스와 함께 렌더링된다', () => {
+    const { container } = render(<BoardHeader onCreateClick={mockOnCreateClick} />);
 
     expect(screen.getByText('Tika')).toBeInTheDocument();
+    expect(container.querySelector('.board-title')).toHaveTextContent('Tika');
   });
 
-  // 5-1-2: "새 업무" 버튼 렌더링
-  it('"새 업무" 버튼이 표시된다', () => {
-    render(<BoardHeader {...defaultProps} />);
+  // C007-2 ───────────────────────────────────────────────────────────────────
+  it('C007-2: 검색 input이 .search-input 클래스와 disabled 속성으로 렌더링된다', () => {
+    const { container } = render(<BoardHeader onCreateClick={mockOnCreateClick} />);
 
-    expect(screen.getByText('새 업무')).toBeInTheDocument();
-  });
-
-  // 5-1-3: "새 업무" 클릭 → onCreateClick 호출
-  it('"새 업무" 클릭 시 onCreateClick이 호출된다', () => {
-    render(<BoardHeader {...defaultProps} />);
-
-    fireEvent.click(screen.getByText('새 업무'));
-
-    expect(defaultProps.onCreateClick).toHaveBeenCalledTimes(1);
-  });
-
-  // 5-1-4: 검색 placeholder + disabled
-  it('검색 input이 비활성 placeholder로 표시된다', () => {
-    render(<BoardHeader {...defaultProps} />);
-
-    const searchInput = screen.getByPlaceholderText('검색 (준비 중)');
+    const searchInput = container.querySelector('.search-input') as HTMLInputElement;
     expect(searchInput).toBeInTheDocument();
     expect(searchInput).toBeDisabled();
+  });
+
+  // C007-3 ───────────────────────────────────────────────────────────────────
+  it('C007-3: "새 업무" 버튼이 렌더링된다', () => {
+    render(<BoardHeader onCreateClick={mockOnCreateClick} />);
+
+    expect(screen.getByRole('button', { name: '새 업무' })).toBeInTheDocument();
+  });
+
+  // C007-4 ───────────────────────────────────────────────────────────────────
+  it('C007-4: "새 업무" 버튼 클릭 시 onCreateClick이 호출된다', async () => {
+    const user = userEvent.setup();
+    render(<BoardHeader onCreateClick={mockOnCreateClick} />);
+
+    await user.click(screen.getByRole('button', { name: '새 업무' }));
+
+    expect(mockOnCreateClick).toHaveBeenCalledTimes(1);
   });
 });

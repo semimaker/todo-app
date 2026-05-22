@@ -167,16 +167,17 @@ body.modal-open {
   letter-spacing: 0.02em;
 }
 
-/* Main area: FilterBar + 3 columns */
+/* Main area: FilterBar + tab bar (mobile) + 3 columns */
 .board-main {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
   overflow: hidden;
 }
 
 .filter-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   padding: 10px 16px;
   background-color: var(--color-header-bg);
@@ -276,12 +277,12 @@ body.modal-open {
 
 .column-cards {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-card-gap);
   padding: 0 12px 12px;
   overflow-y: auto;
-  min-height: 60px;
 }
 
 .column-empty {
@@ -506,8 +507,8 @@ body.modal-open {
 
 .filter-btn[data-active='true'] {
   border-color: var(--color-accent-in-progress);
-  background-color: #eff6ff;
-  color: var(--color-accent-in-progress);
+  background-color: var(--color-accent-in-progress);
+  color: white;
   font-weight: 600;
 }
 
@@ -525,6 +526,59 @@ body.modal-open {
 }
 
 .filter-btn[data-active='true'] .filter-count {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+/* ============================================
+   Mobile Column Tab Bar
+   ============================================ */
+.column-tab-bar {
+  display: none;
+  align-items: center;
+  background-color: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.column-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.column-tab-btn[data-active='true'] {
+  color: var(--color-accent-in-progress);
+  border-bottom-color: var(--color-accent-in-progress);
+}
+
+.column-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background-color: var(--color-border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.column-tab-btn[data-active='true'] .column-tab-count {
   background-color: var(--color-accent-in-progress);
   color: white;
 }
@@ -707,12 +761,12 @@ input[type='time'].form-input {
 
 /* ============================================
    Responsive
-   < 768px  : 단일 컬럼, Backlog 숨김
-   768~1023px: 2컬럼, Backlog 숨김
-   ≥ 1024px : 풀 레이아웃 (Backlog + 3컬럼)
+   < 768px    : 탭 전환, Backlog 숨김, 단일 컬럼
+   768~1023px : 2컬럼 그리드, Backlog 숨김
+   ≥ 1024px   : 풀 레이아웃 (Backlog + 3컬럼)
    ============================================ */
 
-/* Tablet + Mobile (< 1024px): Backlog 숨김 */
+/* Tablet (768–1023px): Backlog 숨김, 2컬럼 */
 @media (max-width: 1023px) {
   .board-content {
     grid-template-columns: 1fr;
@@ -724,17 +778,28 @@ input[type='time'].form-input {
 
   .board-main {
     overflow-y: auto;
-    grid-template-rows: auto auto;
   }
 
   .columns-container {
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: auto;
     height: auto;
     overflow: visible;
   }
+
+  .column {
+    height: auto;
+    min-height: 280px;
+  }
+
+  .column-cards {
+    overflow-y: visible;
+    flex: none;
+    min-height: 40px;
+  }
 }
 
-/* Mobile (< 768px): 단일 컬럼, Backlog 숨김 */
+/* Mobile (< 768px): 탭 전환, 단일 컬럼 */
 @media (max-width: 767px) {
   .board-header {
     padding: 8px 12px;
@@ -745,26 +810,42 @@ input[type='time'].form-input {
     width: 140px;
   }
 
+  .filter-bar {
+    padding: 8px 12px;
+  }
+
+  /* 탭 바 표시 */
+  .column-tab-bar {
+    display: flex;
+  }
+
   .columns-container {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
     padding: 8px;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* 비활성 컬럼 숨김 */
+  .columns-container[data-active-tab] .column {
+    display: none;
+  }
+  .columns-container[data-active-tab='TODO'] .column[data-status='TODO'],
+  .columns-container[data-active-tab='IN_PROGRESS'] .column[data-status='IN_PROGRESS'],
+  .columns-container[data-active-tab='DONE'] .column[data-status='DONE'] {
+    display: flex;
   }
 
   .column {
     height: auto;
+    min-height: 200px;
   }
 
   .column-cards {
     overflow-y: visible;
     flex: none;
-    height: auto;
     min-height: 40px;
-  }
-
-  .filter-bar {
-    padding: 8px 12px;
-    overflow-x: auto;
-    white-space: nowrap;
   }
 
   .modal-content {

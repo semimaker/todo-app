@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -31,7 +32,17 @@ const MAIN_STATUSES = [
   TICKET_STATUS.DONE,
 ] as const;
 
+type MainStatus = (typeof MAIN_STATUSES)[number];
+
+const TAB_LABELS: Record<MainStatus, string> = {
+  TODO: '할 일',
+  IN_PROGRESS: '진행 중',
+  DONE: '완료',
+};
+
 export function Board({ board, activeTicket, onTicketClick, onDragStart, onDragEnd, filterBar }: BoardProps) {
+  const [activeTab, setActiveTab] = useState<MainStatus>(TICKET_STATUS.TODO);
+
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
@@ -55,7 +66,22 @@ export function Board({ board, activeTicket, onTicketClick, onDragStart, onDragE
         </div>
         <div className="board-main">
           {filterBar}
-          <div className="columns-container">
+          <div className="column-tab-bar">
+            {MAIN_STATUSES.map((status) => (
+              <button
+                key={status}
+                className="column-tab-btn"
+                data-active={activeTab === status ? 'true' : undefined}
+                onClick={() => setActiveTab(status)}
+              >
+                {TAB_LABELS[status]}
+                <span className="column-tab-count">
+                  {board.board[status].length}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="columns-container" data-active-tab={activeTab}>
             {MAIN_STATUSES.map((status) => (
               <Column
                 key={status}
